@@ -6,4 +6,4 @@ Contrubuters:
 - Wentao Xie
 - Xiaotong Zhang
 
-Advanced Computer Science Experiment 2018, CSE@SUSTech
+### Advanced Computer Science Experiment 2018, CSE@SUSTech
