@@ -31,7 +31,7 @@ end
 %% ---------------------- Write / read ------------------------
 
 douTrackSig = [ zeros(1, length(finChirp))', finChirp' ];
-% audiowrite('gesture.wav', douTrackSig, Fs);
+audiowrite('gesture.wav', finChirp, Fs);
 rcvChirp = pcmread('t2.pcm');
 [b, a] = butter(10, 16000/(Fs/2), 'high');
 rcvChirp = filtfilt(b, a, rcvChirp);

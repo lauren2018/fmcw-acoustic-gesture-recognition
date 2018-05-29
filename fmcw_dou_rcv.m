@@ -1,22 +1,31 @@
+% Author: Wentao Xie, Meng Zhou and Xiaotong Zhang
+clear;
+close all;
+
+%% ------------------- Data pre-processing ----------------------
+
 rcvSig = pcmread("e2.pcm")';
 [b, a] = butter(10, 16000/(Fs/2), 'high');
 rcvFiltered = filtfilt(b, a, rcvSig);
+
 [f, l] = xcorr(rcvFiltered, model);
 [~, I] = max(f);
 offset = l(I);
 rcvChirp = rcvFiltered(offset+1+1 : offset+length(model)+1);
-rcvLeft = [];
-rcvRight = [];
+
+rcvLeft = []; rcvRight = [];
 for i = 1 : 1922 : length(rcvChirp)
     rcvLeft = [rcvLeft, rcvChirp(i : i+961-1)];
 end
 for i = 962 : 1922 : length(rcvChirp)
     rcvRight = [rcvRight, rcvChirp(i : i+961-1)];
 end
+
+%% ---------------------- Dechirp -------------------------
+
 deChirpLeft = rcvLeft .* modelLeft;
 deChirpRight = rcvRight .* modelRight;
-Left = {};
-Right = {};
+Left = {}; Right = {};
 for i = 1 : length(hanChirpLeft) : length(finChirpLeft)
     if i+length(hanChirpLeft)-1 > length(deChirpLeft)
         break
@@ -32,9 +41,9 @@ for i = 1 : length(hanChirpLeft) : length(finChirpLeft)
     Right = [Right, fRight(1:1000)];
 end
 
-idxLeft = [];
-idxRight = [];
+%% ---------------------- Analysis -------------------------
 
+idxLeft = []; idxRight = [];
 for i = 1 : length(Left)-1
     dLeft = abs(Left{i+1} - Left{i});
     dRight = abs(Right{i+1} - Right{i});
@@ -56,16 +65,15 @@ for i = 1 : length(Left)-1
     [pks, locs] = findpeaks(dRight);
     [~, l] = max(pks);
     idxRight = [idxRight, locs(l)];
-
 end
 
 win = 50;
-trackLeft = [];
-trackRight = [];
+trackLeft = []; trackRight = [];
 for i = 1 : length(idxLeft)-win
     trackLeft = [trackLeft, sum(idxLeft(i : i+win-1))];
     trackRight = [trackRight, sum(idxRight(i : i+win-1))];
 end
+
 figure
 plot(idxLeft)
 hold on

@@ -1,6 +1,6 @@
 % Author: Wentao Xie, Meng Zhou and Xiaotong Zhang
 clear;
-% close all;
+close all;
 
 %% --------------- Constants & configuration ------------------
 
