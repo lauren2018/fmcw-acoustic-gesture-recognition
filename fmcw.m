@@ -5,8 +5,8 @@ clear;
 %% --------------- Constants & configuration ------------------
 
 Fs = 48000;
-initFreq = 16e3;
-finlFreq = 22e3;	
+initFreq = 17e3;
+finlFreq = 23e3;	
 timeInterv = 0.02;
 
 % -------------------------------------------------------------
@@ -21,6 +21,7 @@ chirpSlice = chirp(t,initFreq,timeInterv,finlFreq);
 N = length(chirpSlice) ;
 H = hanning(N);
 hanChirp = chirpSlice.*H';
+% hanChirp = chirpSlice;
 finChirp=[];
 for i=1:1000
     finChirp=[finChirp,hanChirp];
@@ -30,9 +31,9 @@ end
 %% ---------------------- Write / read ------------------------
 
 douTrackSig = [ zeros(1, length(finChirp))', finChirp' ];
-audiowrite('test2.wav', douTrackSig, Fs);
-rcvChirp = pcmread('t.pcm');
-[b, a] = butter(10, 15500/(Fs/2), 'high');
+% audiowrite('gesture.wav', douTrackSig, Fs);
+rcvChirp = pcmread('t2.pcm');
+[b, a] = butter(10, 16000/(Fs/2), 'high');
 rcvChirp = filtfilt(b, a, rcvChirp);
 % -------------------------------------------------------------
 %% ----------------------- Dechirp ----------------------------
@@ -61,25 +62,21 @@ end
 % -------------------------------------------------------------
 idx = [];
 D = [];
+% figure;
 for i = 1 : length(sig)-1
     t = sig{i+1}-sig{i};
     t = abs(t - mean(t));
     D = [D, t(1:20)'];
     win = 5;
-% %     tt = [];
-% %     for k = 1 : length(t)-win
-% %         tt = [tt, sum(t(k:k+win).^1)];
-% %     end
-%     plot(t)
-% %      ylim([0, 0.1])
-%      xlim([0, 1000])
+%     plot(t);
+%     ylim([0, 35000])
 %     drawnow 
 %     pause(0.2)
 %     [~, j] = sort(t);
     [~, j] = max(t);
-%     [pks, locs] = findpeaks(t);
-%     [~, l] = max(pks);
-    idx = [idx, j];
+    [pks, locs] = findpeaks(t);
+    [~, l] = max(pks);
+    idx = [idx, locs(l)];
    
 end
 figure; plot(idx)
@@ -90,3 +87,4 @@ for i = 1:length(idx)-win
 end
 figure
 plot(ii)
+ii=table(ii);
