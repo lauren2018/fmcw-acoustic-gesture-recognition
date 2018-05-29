@@ -28,7 +28,11 @@ hanChirpRight = chirpSliceRight.*H';
 
 finChirpLeft = [];
 finChirpRight = [];
+modelLeft = [];
+modelRight = [];
 for i=1:1000
+    modelLeft = [modelLeft, hanChirpLeft];
+    modelRight = [modelRight, hanChirpRight];
     finChirpLeft = [finChirpLeft, hanChirpLeft, zeros(1, N)];
     finChirpRight = [finChirpRight, zeros(1, N), hanChirpRight];
 end
@@ -37,4 +41,5 @@ end
 %% ---------------------- Write / read ------------------------
 
 douTrackSig = [ finChirpLeft', finChirpRight' ];
+model = finChirpLeft + finChirpRight;
 audiowrite('dou.wav', douTrackSig, Fs);
