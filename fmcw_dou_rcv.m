@@ -1,10 +1,8 @@
 % Author: Wentao Xie, Meng Zhou and Xiaotong Zhang
-clear;
-close all;
 
 %% ------------------- Data pre-processing ----------------------
 
-rcvSig = pcmread("e2.pcm")';
+rcvSig = pcmread("e6.pcm")';
 [b, a] = butter(10, 16000/(Fs/2), 'high');
 rcvFiltered = filtfilt(b, a, rcvSig);
 
@@ -53,25 +51,44 @@ for i = 1 : length(Left)-1
 %     subplot(2, 1, 2)
 %     plot(dRight)
 %     drawnow
-    
-%     [~, jLeft] = max(dLeft);
-%     [~, jRight] = max(dRight);    
-%     idxLeft = [idxLeft, jLeft];
-%     idxRight = [idxRight, jRight];
+%     pause
 
-    [pks, locs] = findpeaks(dLeft);
-    [~, l] = max(pks);
-    idxLeft = [idxLeft, locs(l)];
-    [pks, locs] = findpeaks(dRight);
-    [~, l] = max(pks);
-    idxRight = [idxRight, locs(l)];
+    if max(dLeft) < 8000 && i > 2
+        idxLeft = [idxLeft, idxLeft(end)];
+    else
+        [pks, locs] = findpeaks(dLeft);
+        [~, l] = max(pks);
+        idxLeft = [idxLeft, locs(l)/30000*340*100];
+        %     [~, jLeft] = max(dLeft);
+        %     idxLeft = [idxLeft, jLeft/30000*340*100];
+    end
+    
+    if max(dRight) < 8000 && i > 2
+        idxRight = [idxRight, idxRight(end)];
+    else
+        [pks, locs] = findpeaks(dRight);
+        [~, l] = max(pks);
+        idxRight = [idxRight, locs(l)/30000*340*100];
+        %     [~, jRight] = max(dRight); 
+        %     idxRight = [idxRight, jRight/30000*340*100];
+    end
 end
 
-win = 50;
-trackLeft = []; trackRight = [];
-for i = 1 : length(idxLeft)-win
-    trackLeft = [trackLeft, sum(idxLeft(i : i+win-1))];
-    trackRight = [trackRight, sum(idxRight(i : i+win-1))];
+% win = 50;
+% distLeft = []; distRight = [];
+% P = {};
+% for i = 1 : length(idxLeft)-win
+%     distLeft = [distLeft, mean(idxLeft(i : i+win-1))];
+%     distRight = [distRight, mean(idxRight(i : i+win-1))];
+%     P = [P, findPoint(distLeft(end), distRight(end))];
+% end
+
+distLeft = medfilt1(idxLeft, 10);
+distRight = medfilt1(idxRight, 10);
+P = {};
+for i = 1 : length(idxLeft)
+    [x, y] = findPoint4(distLeft(i), distRight(i));
+    P = [P, [real(x), real(y)]];
 end
 
 figure
@@ -79,6 +96,69 @@ plot(idxLeft)
 hold on
 plot(idxRight)
 figure
-plot(trackLeft)
+plot(distLeft)
 hold on
-plot(trackRight)
+plot(distRight)
+
+figure
+for i = 1 : length(P)
+   plot(P{i}(1), P{i}(2), '.k')
+   xlim([0, 200])
+   ylim([-100, 120])
+   hold on
+   drawnow
+end
+hold off
+
+function [xp, yp] = findPoint(dl, dr)
+opt = optimset('Display', 'off', 'Algorithm','Levenberg-Marquardt'); 
+fun = @intEllipse;
+x0 = [0, 0];
+[xp, yp] = fsolve(fun, x0, opt);
+    function F = intEllipse(X)
+        x = X(1);
+        y = X(2);
+        F(1) = sqrt(x^2+y^2) + sqrt((x-3.5)^2+y^2) - dl;
+        F(2) = sqrt((x-13.5)^2+y^2) + sqrt((x-3.5)^2+y^2) - dr;
+        F(3) = (y+27/7*x-27/2)/abs(y+27/7*x-27/2) + 1;
+    end
+end
+
+function [xp, yp] = findPoint2(dl, dr)
+opt = optimset('Display', 'off', 'Algorithm','Levenberg-Marquardt'); 
+fun = @intEllipse;
+x0 = [1, 1];
+[xp, yp] = fsolve(fun, x0, opt);
+    function F = intEllipse(X)
+        a = dl / 2;
+        c = 13.5 / 2;
+        b = sqrt(a^2 - c^2);
+        r = dr / 2;
+        x = X(1);
+        y = X(2);
+%         F(1) = y - sqrt(dr^2/4 - (x-6.75)^2);
+%         F(2) = y - 1/2 * sqrt((dl^2-182.25)*(1-4*x^2/dl^2));
+        F(1) = x^2/a^2 + y^2/b^2 - 1;
+        F(2) = x^2 + y^2 - r^2;
+        F(3) = y / abs(y) - 1;
+    end
+end
+
+function [xp, yp] = findPoint3(dl, dr)
+a = dl / 2;
+c = 13.5 / 2;
+b = sqrt(a^2 - c^2);
+r = dr / 2;
+syms x y
+eqns = [x^2/a^2 + y^2/b^2 == 1, (x-c)^2+y^2 == r^2];
+rs = solve(eqns, x, y);
+xp = 1;
+yp = 1;
+end
+
+function [xp, yp] = findPoint4(d1, d2)
+L1 = 13.5;
+L2 = 0;
+xp = sqrt((d1^2-L1^2)*(d2^2-L2^2)*((L1+L2)^2-(d1-d2)^2)) / (2*d2*13.5);
+yp = (d2*L1^2-d1*L2^2-d1^2*d2+d2^2*d1) / (2*(d1*L2+d2*L1));
+end

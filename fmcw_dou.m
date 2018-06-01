@@ -42,4 +42,4 @@ end
 
 douTrackSig = [ finChirpLeft', finChirpRight' ];
 model = finChirpLeft + finChirpRight;
-audiowrite('dou.wav', douTrackSig, Fs);
+% audiowrite('dou.wav', douTrackSig, Fs);

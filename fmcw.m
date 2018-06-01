@@ -31,8 +31,8 @@ end
 %% ---------------------- Write / read ------------------------
 
 douTrackSig = [ zeros(1, length(finChirp))', finChirp' ];
-audiowrite('gesture.wav', finChirp, Fs);
-rcvChirp = pcmread('t2.pcm');
+%audiowrite('gesture.wav', finChirp, Fs);
+rcvChirp = pcmread('Eye_0120180529213407.pcm');
 [b, a] = butter(10, 16000/(Fs/2), 'high');
 rcvChirp = filtfilt(b, a, rcvChirp);
 % -------------------------------------------------------------
@@ -48,10 +48,10 @@ deChirp = finChirp .* rcvChirp';
 % figure;
 for i = 1:length(hanChirp):length(finChirp)
       f = abs(fft(deChirp(i:i+length(hanChirp)-1), 8192 *2));
-%       plot(f(1:1000))
-%       ylim([0, 250000])
-%       xlim([0, 1000])
-%       drawnow
+      plot(f(1:2000))
+      ylim([0, 4000])
+      xlim([0, 1000])
+      drawnow
 %       pause(0.1)
       sig = [sig, f(1:1000)];
       S = [S, f(1:100)'];
