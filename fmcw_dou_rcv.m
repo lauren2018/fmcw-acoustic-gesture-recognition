@@ -1,4 +1,6 @@
 % Author: Wentao Xie, Meng Zhou and Xiaotong Zhang
+N = 8192*2;
+res = (1*Fs) / N;
 
 %% ------------------- Data pre-processing ----------------------
 
@@ -28,8 +30,8 @@ for i = 1 : length(hanChirpLeft) : length(finChirpLeft)
     if i+length(hanChirpLeft)-1 > length(deChirpLeft)
         break
     end
-    fLeft = abs(fft(deChirpLeft(i : i+length(hanChirpLeft)-1), 8192*2));
-    fRight = abs(fft(deChirpRight(i : i+length(hanChirpRight)-1), 8192*2));
+    fLeft = abs(fft(deChirpLeft(i : i+length(hanChirpLeft)-1), N));
+    fRight = abs(fft(deChirpRight(i : i+length(hanChirpRight)-1), N));
 %     subplot(2, 1, 1)
 %     plot(fLeft(1:1000))
 %     subplot(2, 1, 2)
@@ -58,7 +60,9 @@ for i = 1 : length(Left)-1
     else
         [pks, locs] = findpeaks(dLeft);
         [~, l] = max(pks);
-        idxLeft = [idxLeft, locs(l)/30000*340*100];
+        deltaF = locs(l)*res;
+        deltaT = deltaF / k;
+        idxLeft = [idxLeft, deltaT*vs];
         %     [~, jLeft] = max(dLeft);
         %     idxLeft = [idxLeft, jLeft/30000*340*100];
     end
@@ -68,7 +72,9 @@ for i = 1 : length(Left)-1
     else
         [pks, locs] = findpeaks(dRight);
         [~, l] = max(pks);
-        idxRight = [idxRight, locs(l)/30000*340*100];
+        deltaF = locs(l)*res;
+        deltaT = deltaF / k;
+        idxRight = [idxRight, deltaT*vs];
         %     [~, jRight] = max(dRight); 
         %     idxRight = [idxRight, jRight/30000*340*100];
     end
@@ -84,7 +90,9 @@ end
 % end
 
 distLeft = medfilt1(idxLeft, 10);
+% disLeft = idxLeft;
 distRight = medfilt1(idxRight, 10);
+% disRight = idxRight;
 P = {};
 for i = 1 : length(idxLeft)
     [x, y] = findPoint4(distLeft(i), distRight(i));
@@ -103,10 +111,10 @@ plot(distRight)
 figure
 for i = 1 : length(P)
    plot(P{i}(1), P{i}(2), '.k')
-   xlim([0, 200])
-   ylim([-100, 120])
+   xlim([0, 0.009])
+   ylim([-0.3, 0.3])
    hold on
-   drawnow
+%    drawnow
 end
 hold off
 
@@ -157,7 +165,7 @@ yp = 1;
 end
 
 function [xp, yp] = findPoint4(d1, d2)
-L1 = 13.5;
+L1 = 0.135;
 L2 = 0;
 xp = sqrt((d1^2-L1^2)*(d2^2-L2^2)*((L1+L2)^2-(d1-d2)^2)) / (2*d2*13.5);
 yp = (d2*L1^2-d1*L2^2-d1^2*d2+d2^2*d1) / (2*(d1*L2+d2*L1));

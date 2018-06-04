@@ -10,6 +10,8 @@ finlFreqLeft = 23e3;
 initFreqRight = 23e3;
 finlFreqRight = 17e3;
 timeInterv = 0.02;
+k = abs((finlFreqLeft-initFreqLeft) / timeInterv);
+vs = 340;
 
 % -------------------------------------------------------------
 %% --------------- A frame of chirp signal --------------------
